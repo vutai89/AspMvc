@@ -1,0 +1,36 @@
+var err_msg, log = mc.getServiceLog(),
+    _ploadObj = mc.getPayloadJSON();
+if (mc.setProperty("error_code", "200"), null == _ploadObj && setError("Payload empty is not allowed!"), checkPayload(_ploadObj)) {
+    var payload = _ploadObj;
+	var resultValid = 0;
+    if (checkNULL(payload.phoneNumber) || isNaN(payload.phoneNumber) || (10 != payload.phoneNumber.toString().length)) {
+        setError("phoneNumber is malformed!");
+		resultValid = 1;
+    }
+    if (checkNULL(payload.requestId)) {
+        setError("requestId is malformed!");
+		resultValid = 1;
+    }
+	if(resultValid === 1){		
+		mc.setProperty("phoneNumber", payload.phoneNumber);
+		mc.setProperty("requestId", payload.requestId);
+		mc.setProperty("partner",payload.partner);
+		mc.setProperty("nationalId",payload.nationalId);
+	}	
+    mc.setPayloadJSON(payload);
+    log.info("SET PAYLOAD OK!");
+} else log.info("PAYLOAD NOT OK!");
+
+function checkPayload(e) {
+    return true;
+}
+
+function setError(e) {
+    mc.setProperty("error_code", "400.01"), mc.setProperty("error_message", e), log.info(e), err_msg = e
+}
+
+function checkNULL(e) {
+    if (e == null) return true;
+    var t = e.toString();
+    return "" == t.trim();
+}
