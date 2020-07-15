@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inSequence xmlns="http://ws.apache.org/ns/synapse">
+    <log level="full"/>
+    <script language="js"><![CDATA[var err_msg, log=mc.getServiceLog(),_ploadObj=mc.getPayloadJSON();if (mc.setProperty("error_code", "200"), null==_ploadObj && setError("Payload empty is not allowed!"), checkPayload(_ploadObj)){var payload=_ploadObj;mc.setProperty("phoneNumber", payload.phoneNumber);mc.setProperty("requestId", payload.requestId);mc.setProperty("partner",payload.partner);mc.setProperty("nationalId",payload.nationalId);}function checkPayload(e){return true;}function setError(e){mc.setProperty("error_code", "400.01"), mc.setProperty("error_message", e), log.info(e), err_msg=e}]]></script>
+    <log level="custom">
+        <property expression="get-property('error_code')" name="error_code"/>
+    </log>
+    <call>
+        <endpoint>
+            <http method="POST" uri-template="http://sit-mcportal.mcredit.com.vn/mcService/service/v1.0/leadgen/check"/>
+        </endpoint>
+    </call>
+    <log level="full">
+        <property expression="get-property('axis2', 'HTTP_SC')" name="HTTP_SC"/>
+    </log>
+    <filter regex="200" source="get-property('axis2', 'HTTP_SC')">
+        <then/>
+        <else>
+            <respond/>
+            <drop/>
+        </else>
+    </filter>
+    <property action="remove" name="REST_URL_POSTFIX" scope="axis2"/>
+    <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+    <payloadFactory media-type="json">
+        <format>{  "phoneNumber": "$1",  "nationalId": "$2",  "requestId": "$3",  "partner": "$4"}</format>
+        <args>
+            <arg evaluator="xml" expression="get-property('phoneNumber')"/>
+            <arg evaluator="xml" expression="get-property('nationalId')"/>
+            <arg evaluator="xml" expression="get-property('requestId')"/>
+            <arg evaluator="xml" expression="get-property('partner')"/>
+        </args>
+    </payloadFactory>
+    <log level="full"/>
+    <send>
+        <endpoint>
+            <http method="POST" uri-template="http://sit-mcportal.mcredit.com.vn/mcService/service/v1.0/leadgen/checkDuplicateContract"/>
+        </endpoint>
+    </send>
+</inSequence>
