@@ -1,25 +1,20 @@
 var err_msg, log = mc.getServiceLog(),
-    _ploadObj = mc.getPayloadJSON();
-if (mc.setProperty("error_code", "200"), null == _ploadObj && setError("Payload empty is not allowed!"), checkPayload(_ploadObj)) {
-    var payload = _ploadObj;
-    if (checkNULL(payload.phoneNumber) || isNaN(payload.phoneNumber) || (10 != payload.phoneNumber.toString().length)) {
-        setError("phoneNumber is malformed!");
-    }
-    if (checkNULL(payload.requestId)) {
-        setError("requestId is malformed!");
-    }
-    mc.setPayloadJSON(payload);
-    log.info("SET PAYLOAD OK!");
+    _payloadObj = mc.getPayloadJSON();
+if (mc.setProperty("error_code", "200"), checkPayload(_payloadObj)) {
+    try {
+        if (checkNULL(_payloadObj.entries.entry))
+			setError("empty data!");
+    } catch (r) {
+        setError("empty data!");
+    }    log.info("SET PAYLOAD OK!");
 } else log.info("PAYLOAD NOT OK!");
 
 function checkPayload(e) {
     return true;
 }
-
 function setError(e) {
     mc.setProperty("error_code", "400.01"), mc.setProperty("error_message", e), log.info(e), err_msg = e
 }
-
 function checkNULL(e) {
     if (e == null) return true;
     var t = e.toString();
